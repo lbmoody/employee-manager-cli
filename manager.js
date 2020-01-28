@@ -45,18 +45,15 @@ const initialize = () => {
                     viewDeparments();
                 break;
                 case "View All Employees by Role":
-                
+                    viewRoles();
                 break;
                 case "Add an Employee":
-                
+                    addEmployee();
                 break;
                 case "Remove an Employee":
                 
                 break;
                 case "Update Employee Role":
-                
-                break;
-                case "View All Roles":
                 
                 break;
                 default:
@@ -108,9 +105,105 @@ const viewDeparments = () => {
                         , (err, res) => {
                             if (err) throw err;
                             console.table(res)
+                            initialize();
                         }
                     )
-                    connection.end();
+                })
+        }
+    )
+}
+
+const viewRoles = () => {
+    const query = "SELECT * FROM role;"
+    connection.query(
+        query
+        , (err, res) => {
+            if (err) throw err;
+            inquirer
+                .prompt([
+                    {
+                        name:"choice"
+                        , type: "list"
+                        , message: "Which Role would you like to view?"
+                        , choices: () => {
+                            var choiceArray = [];
+                            for (const item of res) {
+                                choiceArray.push(item.title)
+                            }
+                            return choiceArray;
+                        }
+                    }
+                ]).then(data => {
+                    const query = "SELECT employee.id, employee.first_name, employee.last_name, role.title , department.name, role.salary FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE ?;"
+                    connection.query(
+                        query
+                        , [{
+                            "role.title": data.choice
+                        }]
+                        , (err, res) => {
+                            if (err) throw err;
+                            console.table(res)
+                            initialize();
+                        }
+                    )
+                })
+        }
+    )
+}
+
+const addEmployee = () => {
+    const query = "SELECT title FROM role;"
+    connection.query(
+        query
+        , (err, res) => {
+            if (err) throw err;
+            inquirer
+                .prompt([
+                    {   
+                        name: "firstName"
+                        , type: "input"
+                        , message: "What is the Employees First Name?"
+                    },
+                    {
+                        name: "lastName"
+                        , type: "input"
+                        , message: "What is the Employees Last Name?"
+                    },
+                    {
+                        name: "choice"
+                        , type: "list"
+                        , message: "What is this employee's title?"
+                        , choices: () => {
+                            var choiceArray = [];
+                            for (const item of res) {
+                                choiceArray.push(item.title)
+                            }
+                            return choiceArray;
+                        }
+                    }
+                ]).then(data => {
+                    const query = "SELECT id FROM role WHERE ?"
+                    connection.query(
+                        query
+                        , { title: data.choice}
+                        , (err, res, data) => {
+                            if (err) throw err;
+                            const insertQuery = `INSERT INTO employee SET ?`
+                            connection.query(
+                                insertQuery
+                                , {
+                                    first_name: data.firstName
+                                    , last_name: data.lastName
+                                    , role_id: res.id
+                                }
+                                , (err) => {
+                                    if (err) throw err;
+                                    console.log("Employee Added!");
+                                    initialize();
+                                }
+                            )
+                        }
+                    )
                 })
         }
     )
