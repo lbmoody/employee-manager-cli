@@ -53,9 +53,6 @@ const initialize = () => {
                 case "Remove an Employee":
                 
                 break;
-                case "Update Employee Role":
-                
-                break;
                 default:
                     connection.end();
 
@@ -64,7 +61,7 @@ const initialize = () => {
 }
 
 const viewEmployees = () => {
-    const query = "SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary, IFNULL(CONCAT(empMan.first_name, ' ', empMan.last_name), 'None') AS manager from employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id JOIN employee empMan ON employee.manager_id = empMan.id ORDER BY employee.id"
+    const query = "SELECT DISTINCT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id;"
     connection.query(
         query
         , (err, res) => {
@@ -152,62 +149,132 @@ const viewRoles = () => {
 }
 
 const addEmployee = () => {
-    const query = "SELECT title FROM role;"
+    inquirer
+        .prompt([
+            {   
+                name: "firstName"
+                , type: "input"
+                , message: "What is the Employees First Name?"
+            },
+            {
+                name: "lastName"
+                , type: "input"
+                , message: "What is the Employees Last Name?"
+            },
+            {
+                name: "choice"
+                , type: "list"
+                , message: "What is this employee's title?"
+                , choices: [
+                    "CEO"
+                    , "COO"
+                    , "CTO"
+                    , "CFO"
+                    , "Sales Team Lead"
+                    , "Salesperson"
+                    , "Controller"
+                    , "Accountant"
+                    , "Legal Team Lead"
+                    , "Lawyer"
+                    , "Engineer Team Lead"
+                    , "Software Engineer"
+                ]
+            }
+        ]).then(data => {
+            switch(data.choice) {
+                case "CEO":
+                    var roleID = 1;
+                break;
+            
+                case "COO":
+                    var roleID = 2;
+                break;
+            
+                case "CTO":
+                    var roleID = 3;
+                break;
+            
+                case "CFO":
+                    var roleID = 4;
+                break;
+            
+                case "Sales Team Lead":
+                    var roleID = 5;
+                break;
+            
+                case "Salesperson":
+                    var roleID = 6;
+                break;
+            
+                case "Controller":
+                    var roleID = 7;
+                break;
+            
+                case "Accountant":
+                    var roleID = 8;
+                break;
+            
+                case "Legal Team Lead":
+                    var roleID = 9;
+                break;
+            
+                case "Lawyer":
+                    var roleID = 10;
+                break;
+            
+                case "Engineer Team Lead":
+                    var roleID = 11;
+                break;
+            
+                case "Software Engineer":
+                    var roleID = 12;
+                break;
+            }
+
+            const query = "INSERT INTO employee SET ?;"
+            connection.query(
+                query
+                , {
+                    first_name: data.firstName
+                    , last_name: data.lastName
+                    , role_id: roleID
+                }
+                , err => {
+                    if (err)throw err;
+                    console.log("Employee Added!")
+                    initialize();
+                }
+            )
+            
+        })
+
+}
+
+const deleteEmployee = () => {
+    const query = "SELECT CONCAT(first_name, ' ', last_name) AS name FROM employee;"
     connection.query(
         query
         , (err, res) => {
             if (err) throw err;
             inquirer
-                .prompt([
-                    {   
-                        name: "firstName"
-                        , type: "input"
-                        , message: "What is the Employees First Name?"
-                    },
+                .prompt(
                     {
-                        name: "lastName"
-                        , type: "input"
-                        , message: "What is the Employees Last Name?"
-                    },
-                    {
-                        name: "choice"
-                        , type: "list"
-                        , message: "What is this employee's title?"
+                        type: "list"
+                        , message: "Which Employee would you like to delete?"
+                        , name: "selectedEmp"
                         , choices: () => {
                             var choiceArray = [];
-                            for (const item of res) {
-                                choiceArray.push(item.title)
+                            for (const item in res) {
+                                choiceArray.push(item);
                             }
                             return choiceArray;
                         }
                     }
-                ]).then(data => {
-                    const query = "SELECT id FROM role WHERE ?"
-                    connection.query(
-                        query
-                        , { title: data.choice}
-                        , (err, res, data) => {
-                            if (err) throw err;
-                            const insertQuery = `INSERT INTO employee SET ?`
-                            connection.query(
-                                insertQuery
-                                , {
-                                    first_name: data.firstName
-                                    , last_name: data.lastName
-                                    , role_id: res.id
-                                }
-                                , (err) => {
-                                    if (err) throw err;
-                                    console.log("Employee Added!");
-                                    initialize();
-                                }
-                            )
-                        }
-                    )
-                })
+                )
         }
     )
 }
+
 // TODOS
 
 // research using env file to hide sql password
