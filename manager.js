@@ -31,8 +31,6 @@ const initialize = () => {
                     , "View All Employees by Role"
                     , "Add an Employee"
                     , "Remove an Employee"
-                    , "Update Employee Role"
-                    , "View All Roles"
                     , "Exit"
                 ]
             }
@@ -51,7 +49,7 @@ const initialize = () => {
                     addEmployee();
                 break;
                 case "Remove an Employee":
-                
+                    deleteEmployee();
                 break;
                 default:
                     connection.end();
@@ -68,8 +66,7 @@ const viewEmployees = () => {
             if (err) throw err;
             console.table(res);
             initialize();
-        }
-    )
+        });
 };
 
 const viewDeparments = () => {
@@ -103,11 +100,9 @@ const viewDeparments = () => {
                             if (err) throw err;
                             console.table(res)
                             initialize();
-                        }
-                    )
+                        });
                 })
-        }
-    )
+        });
 }
 
 const viewRoles = () => {
@@ -141,11 +136,9 @@ const viewRoles = () => {
                             if (err) throw err;
                             console.table(res)
                             initialize();
-                        }
-                    )
-                })
-        }
-    )
+                        });
+                });
+        });
 }
 
 const addEmployee = () => {
@@ -243,15 +236,12 @@ const addEmployee = () => {
                     if (err)throw err;
                     console.log("Employee Added!")
                     initialize();
-                }
-            )
-            
-        })
-
+                });
+        });
 }
 
 const deleteEmployee = () => {
-    const query = "SELECT CONCAT(first_name, ' ', last_name) AS name FROM employee;"
+    const query = "SELECT CONCAT(first_name, ' ', last_name) as name FROM employee;"
     connection.query(
         query
         , (err, res) => {
@@ -264,16 +254,33 @@ const deleteEmployee = () => {
                         , name: "selectedEmp"
                         , choices: () => {
                             var choiceArray = [];
-                            for (const item in res) {
-                                choiceArray.push(item);
+                            for (const item of res) {
+                                choiceArray.push(item.name);
                             }
                             return choiceArray;
                         }
                     }
-                )
-        }
-    )
-}
+                ).then( data => {
+                    const emp = data.selectedEmp.split(" ");
+                    const query = "DELETE FROM employee WHERE ? AND ?";
+                    connection.query(
+                        query
+                        , [
+                            {
+                                first_name: emp[0]
+                            },
+                            {
+                                last_name: emp[1]
+                            }
+                        ]
+                        , err => {
+                            if (err) throw err;
+                            console.log("Employee Successfully deleted!");
+                            initialize();
+                        });
+                });
+        });
+};
 
 // TODOS
 
