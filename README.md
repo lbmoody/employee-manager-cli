@@ -20,7 +20,3 @@ This applicaion allows a user without sql database knowledge the ablitity to int
  - Exit
 
 Selection of these items will prompt addtional inquirer prompts that allow the user to complete the selected action. On completion of an action the user will be redirected back to the list of 7 actions. When complete the user may close the application by selecting `Exit`.
-
-## gif-walkthrough
-
-![app-walkthrough](./assets/gifs/employee_manager.gif)
